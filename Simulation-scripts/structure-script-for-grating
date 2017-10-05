@@ -1,0 +1,136 @@
+deleteall;
+####################################################
+# Binary grating
+## Input properties
+# 
+# n_periods: number of periods drawn
+# h_grating: thickness of grating layer
+# fill: length of each tooth
+# period: length of each repeated structure
+# index: refractive index
+# h_base: thickness of baselayer
+# seed:  seed random generator with specific number
+#####################################################
+
+
+selectall;
+delete;
+vRand=matrix(n_periods,3); #% initialise
+Count = 0; # initialise
+n_periods=n_periods-1;
+fill=period*fill_factor;
+V=matrix(8,2);
+randreset(seed);#Resets the random number seed to the defined number.
+
+
+## LOOP FOR EACH PERIOD
+for(i=-n_periods/2:n_periods/2){
+
+
+Count= Count+1;
+#######################################
+#% generate a set of random parameters containing: #% width deviation #% position shift #% height difference
+#% this generates the random offset from a fixed lattice. We are trunkating the gaussian at 2sigma.
+
+#% Initialisations
+XX=10; #%initialize position variable 
+WW=10; #%initialize width deviation
+HH=10; #%initialize position variable 
+
+    #% POSITION displacement, trunkated at 2sigma 
+    for(0;(XX>(2*sigma_x))|(XX<(-2*sigma_x));0){ #% Repeat if x is not in range of 2*sigma around the mean
+        #### NUMBER GENERATION #### 
+        w=1; #initialize
+        for(0;(w>1)|(w==1);0){ # while w>=1
+          x1 = 2*rand - 1;  x2 = 2*rand - 1;  w = x1^2 + x2^2; }
+        w = sqrt( (-2*log( w ) ) / w );
+        XX = sigma_x * (x1 * w);# transform standard values according to non-standard gauss distribution #Y1(i) = mean + sqrt(variance) * y1;
+        #############################
+    }
+   
+    #% WIDTH deviation, trunkated at 2sigma    
+    for(0;(WW>(2*sigma_w))|(WW<(-2*sigma_w));0){
+        #### NUMBER GENERATION #### 
+        w=1; #initialize
+        for(0;(w>1)|(w==1);0){ # while w>=1
+          x1 = 2*rand - 1;  x2 = 2*rand - 1;  w = x1^2 + x2^2; }
+        w = sqrt( (-2*log( w ) ) / w );
+        WW = sigma_w * (x1 * w);# transform standard values according to non-standard gauss distribution #Y1(i) = mean + sqrt(variance) * y1;
+        #############################
+    }
+
+    #% HEIGHT deviation, trunkated at 2sigma
+    for(0;(HH>(2*sigma_h))|(HH<(-2*sigma_h));0){
+        #### NUMBER GENERATION #### 
+        w=1; #initialize
+        for(0;(w>1)|(w==1);0){ # while w>=1
+          x1 = 2*rand - 1;  x2 = 2*rand - 1;  w = x1^2 + x2^2; }
+        w = sqrt( (-2*log( w ) ) / w );
+        HH = sigma_h * (x1 * w);# transform standard values according to non-standard gauss distribution #Y1(i) = mean + sqrt(variance) * y1;
+        #############################
+    }
+    
+    #% Make sure the lines don't run into each other
+    if(Count>1){
+        Start = (Count*period) + XX - ((WW+fill)/2);
+        End = ((Count-1)*period) + vRand(Count-1,2) + ((vRand(Count-1,1)+fill)/2);
+        if(End>(Count*period)){ #% if previous striation overlaps with center of this period
+            XX=0; WW=0; HH=0; #% delete this striation
+        }else{
+	if(End>Start){ #% if they run into each other
+	for(0;(End>Start);0){ # while End>Start; #% run until they don't overlap anymore
+		XX=10; #%initialize position variable 
+		WW=10; #%initialize width deviation
+		#% POSITION displacement, trunkated at 2sigma 
+		for(0;(XX>(2*sigma_x))|(XX<(-2*sigma_x));0){ #while XX > 2*sigma_x || XX < -2*sigma_x;
+		#### NUMBER GENERATION #### 
+		w=1; #initialize
+		for(0;(w>1)|(w==1);0){ # while w>=1
+		  x1 = 2*rand - 1;  x2 = 2*rand - 1;  w = x1^2 + x2^2; }
+		w = sqrt( (-2*log( w ) ) / w );
+        		XX = sigma_x * (x1 * w);# transform standard values according to non-standard gauss distribution #Y1(i) = mean + sqrt(variance) * y1;
+		#############################
+    		}
+    		#% WIDTH deviation, trunkated at 2sigma    
+		for(0;(WW>(2*sigma_w))|(WW<(-2*sigma_w));0){ #while WW > 2*sigma_w || WW < -2*sigma_w;
+		#### NUMBER GENERATION #### 
+		w=1; #initialize
+		for(0;(w>1)|(w==1);0){ # while w>=1
+		  x1 = 2*rand - 1;  x2 = 2*rand - 1;  w = x1^2 + x2^2; }
+		w = sqrt( (-2*log( w ) ) / w );
+		WW = sigma_w * (x1 * w);# transform standard values according to non-standard gauss distribution #Y1(i) = mean + sqrt(variance) * y1;
+		#############################                    
+		}
+                    Start = Count*period + XX - (WW+fill)/2;
+                    End = (Count-1)*period + vRand(Count-1,2) + (vRand(Count-1,1)+fill)/2;
+            }}
+        }
+    }
+#% create the data matrix column
+    vRand(Count,1)=WW;
+    vRand(Count,2)=XX;
+    vRand(Count,3)=HH;      
+#######################################
+
+
+  #[x,y] points
+   V(1,1:2)=[(-(fill+WW)/2)+XX,h_grating+HH];
+   V(2,1:2)=[((fill+WW)/2)+XX,h_grating+HH];
+   V(3,1:2)=[((fill+WW)/2)+XX,0];
+   V(4,1:2)=[period/2,0];
+   V(5,1:2)=[period/2,-h_base];
+   V(6,1:2)=[-period/2,-h_base];
+   V(7,1:2)=[-period/2,0];
+   V(8,1:2)=[(-(fill+WW)/2)+XX,0];
+
+  #add grating
+  addpoly;
+   set("name","post");
+   set("x",period*i);
+   set("y",0);
+   set("vertices",V); 
+   set("material",mat_grating); 
+   if(get("material")=="<Object defined dielectric>") 
+     { set("index",index_grating); } 
+
+}
