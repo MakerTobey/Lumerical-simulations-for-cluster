@@ -6,7 +6,7 @@
 FileNameSettings = 'matfile_Settings_Supercell_Sweep_PWH_Hibiscus'; % e.g. 'matfile_Settings_for_Grating_Farfield_Sweep'
 basenameREAD = 'matfile_all_disorder'; % Base of matlab file name e.g. 'matfile_height_490nm'
 % Add a path to searchpath to find matlab files:
-path(path,'C:\Users\tw347\OwnCloud_backup\data9,0\twenzel\files\workfiles\Strication Paper\material\Striation paper material fig3\Simulations\Clusterversion\matlabfiles');
+path(path,'C:\Users\...\matlabfiles');%comlete for your individual filepath to the matlab datasets
 plotname = 'hibiscus_all_disorder'; % Made up name to appear on plots e.g. 'Period_displacement'
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
